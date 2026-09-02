@@ -35,6 +35,8 @@ const server = http.createServer(async (request, response) => {
 
                     previous_interaction_id: previousInteractionId,
 
+                    tools: [{ type: "google_search" }],
+
                     generation_config: {
                         thinking_level: "low",
                     },
