@@ -7,6 +7,8 @@ const ai = new GoogleGenAI({
     apiKey: process.env.GEMINI_API_KEY
 });
 
+let previousInteractionId = null;
+
 const server = http.createServer(async (request, response) => {
 
     response.setHeader("Access-Control-Allow-Origin", "*");
@@ -30,6 +32,8 @@ const server = http.createServer(async (request, response) => {
                 const interaction = await ai.interactions.create({
                     model: "gemini-3.5-flash-lite",
                     input: data.prompt,
+
+                    previous_interaction_id: previousInteractionId,
 
                     generation_config: {
                         thinking_level: "low",
@@ -57,6 +61,8 @@ If you are not confident about a factual answer, say that you are not sure rathe
 Pay close attention to the exact names in the user's question and do not substitute similar names.
                     `,
                 });
+
+                previousInteractionId = interaction.id;
 
                 const answer = interaction.output_text;
 
