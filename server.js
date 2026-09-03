@@ -102,6 +102,7 @@ If the search results do not provide enough information, say so.
                         - For calculations, give only the result unless an explanation is requested.
                         - Use natural spoken language.
                         - Be kind.
+                        - If you are asked to summarize something, you may make the response longer.
                         - Never invent or assume facts.
                         - If you are not confident about a factual answer, say that you are not sure rather than guessing.
                         - Pay close attention to the exact names in the user's question and do not substitute similar names.
