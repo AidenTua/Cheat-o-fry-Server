@@ -2,12 +2,30 @@ require("dotenv").config();
 
 const http = require("http");
 const { GoogleGenAI } = require("@google/genai");
+const { tavily } = require("@tavily/core");
 
 const ai = new GoogleGenAI({
     apiKey: process.env.GEMINI_API_KEY
 });
 
+const tvly = tavily({
+    apiKey: process.env.TAVILY_API_KEY
+});
+
 let previousInteractionId = null;
+
+async function searchWeb(query) {
+    const result = await tvly.search(query, {
+        maxResults: 5,
+        searchDepth: "basic"
+    });
+
+    return result.results.map(result => ({
+        title: result.title,
+        url: result.url,
+        content: result.content
+    }));
+}
 
 const server = http.createServer(async (request, response) => {
 
@@ -29,9 +47,37 @@ const server = http.createServer(async (request, response) => {
 
                 console.log("Prompt received:", data.prompt);
 
+                let input = data.prompt;
+
+                if (data.searchWeb) {
+                    console.log("Searching web for:", data.prompt);
+
+                    const searchResults = await searchWeb(data.prompt);
+
+                    input = `
+The user asked you to search the web.
+
+Here are the web search results:
+
+${searchResults.map((result, index) => `
+SOURCE ${index + 1}
+Title: ${result.title}
+URL: ${result.url}
+Content: ${result.content}
+`).join("\n")}
+
+Using these sources, answer the user's original question:
+
+${data.prompt}
+
+Only state information supported by the search results.
+If the search results do not provide enough information, say so.
+`;
+                }
+
                 const interaction = await ai.interactions.create({
                     model: "gemini-3.5-flash-lite",
-                    input: data.prompt,
+                    input: input,
 
                     previous_interaction_id: previousInteractionId,
 
@@ -57,8 +103,8 @@ const server = http.createServer(async (request, response) => {
                         - Use natural spoken language.
                         - Be kind.
                         - Never invent or assume facts.
-If you are not confident about a factual answer, say that you are not sure rather than guessing.
-Pay close attention to the exact names in the user's question and do not substitute similar names.
+                        - If you are not confident about a factual answer, say that you are not sure rather than guessing.
+                        - Pay close attention to the exact names in the user's question and do not substitute similar names.
                     `,
                 });
 
@@ -67,10 +113,11 @@ Pay close attention to the exact names in the user's question and do not substit
                 const answer = interaction.output_text;
 
                 response.setHeader("Content-Type", "application/json");
+
                 console.log("Response: " + answer);
+
                 response.end(JSON.stringify({
                     response: answer
-                    
                 }));
 
             } catch (error) {
