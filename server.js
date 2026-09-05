@@ -49,11 +49,12 @@ const server = http.createServer(async (request, response) => {
             const data = JSON.parse(body);
             const key = data.key;
 
-            if (key !== authKey) {
+                if (key !== authKey) {
                     response.statusCode = 401;
                     response.end(JSON.stringify({
                         error: "Unauthorized"
                     }));
+                    console.error("Unauthorized");
                     return;
                 }
             const renderResponse = await fetch(
