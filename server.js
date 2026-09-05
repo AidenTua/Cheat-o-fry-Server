@@ -32,6 +32,38 @@ const server = http.createServer(async (request, response) => {
     response.setHeader("Access-Control-Allow-Origin", "*");
     response.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
+    if (request.method === "POST" && request.url === "/restart") {
+
+        try {
+            const renderResponse = await fetch(
+                "https://api.render.com/v1/services/srv-dabnqm7qj5pc738oelig/restart",
+                {
+                    method: "POST",
+                    headers: {
+                        "Authorization": `Bearer ${process.env.RENDER_API_KEY}`,
+                        "Accept": "application/json"
+                    }
+                }
+            );
+    
+            console.log("Render restart status:", renderResponse.status);
+    
+            response.end(JSON.stringify({
+                success: renderResponse.ok
+            }));
+    
+        } catch (error) {
+            console.error("Restart failed:", error);
+    
+            response.statusCode = 500;
+            response.end(JSON.stringify({
+                error: error.message
+            }));
+        }
+    
+        return;
+    }
+
     if (request.method === "POST" && request.url === "/ask") {
 
         let body = "";
