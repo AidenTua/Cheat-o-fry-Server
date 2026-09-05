@@ -100,7 +100,7 @@ const server = http.createServer(async (request, response) => {
             try {
                 const data = JSON.parse(body);
 
-                console.log("Request received:", data.prompt);
+                console.log("Request received:", data);
 
                 let input = data.prompt;
                 let key = data.key;
