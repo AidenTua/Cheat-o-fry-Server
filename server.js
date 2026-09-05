@@ -100,7 +100,7 @@ const server = http.createServer(async (request, response) => {
             try {
                 const data = JSON.parse(body);
 
-                console.log("Request received:", data);
+                console.log("Request received:", data.prompt);
 
                 let input = data.prompt;
                 let key = data.key;
@@ -110,6 +110,7 @@ const server = http.createServer(async (request, response) => {
                     response.end(JSON.stringify({
                         error: "Unauthorized"
                     }));
+                    console.error("Unauthorized");
                     return;
                 }
 
