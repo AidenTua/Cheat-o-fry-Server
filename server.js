@@ -8,6 +8,8 @@ const ai = new GoogleGenAI({
     apiKey: process.env.GEMINI_API_KEY
 });
 
+const authKey = process.env.AUTH_KEY;
+
 const tvly = tavily({
     apiKey: process.env.TAVILY_API_KEY
 });
@@ -34,7 +36,26 @@ const server = http.createServer(async (request, response) => {
 
     if (request.method === "POST" && request.url === "/restart") {
 
+        let body = "";
+
+        request.on("data", chunk => {
+            body += chunk;
+        });
+    
+        request.on("end", async () => {
+
         try {
+
+            const data = JSON.parse(body);
+            const key = data.key;
+
+            if (key !== authKey) {
+                    response.statusCode = 401;
+                    response.end(JSON.stringify({
+                        error: "Unauthorized"
+                    }));
+                    return;
+                }
             const renderResponse = await fetch(
                 "https://api.render.com/v1/services/srv-dabnqm7qj5pc738oelig/restart",
                 {
@@ -60,6 +81,8 @@ const server = http.createServer(async (request, response) => {
                 error: error.message
             }));
         }
+
+        });
     
         return;
     }
@@ -77,9 +100,18 @@ const server = http.createServer(async (request, response) => {
             try {
                 const data = JSON.parse(body);
 
-                console.log("Request received:", data);
+                console.log("Request received:", data.prompt);
 
                 let input = data.prompt;
+                let key = data.key;
+
+                if (key !== authKey) {
+                    response.statusCode = 401;
+                    response.end(JSON.stringify({
+                        error: "Unauthorized"
+                    }));
+                    return;
+                }
 
                 if (data.searchWeb) {
                     console.log("Searching web for:", data.prompt);
